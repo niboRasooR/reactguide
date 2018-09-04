@@ -1,31 +1,77 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
-import Person from './components/Person';
-import UserInput from './components/UserInput';
-import UserOutput from './components/UserOutput';
-import Validation from './components/Validation';
-import CharComponent from './components/CharComponent';
+import logo from '../logo.svg';
+import classnames from './App.css';
+import Person from '../components/Persons/Person';
+import UserInput from '../components/UserInput';
+import UserOutput from '../components/UserOutput';
+import Validation from '../components/Validation';
+import CharComponent from '../components/CharComponent';
+import withClass from '../hoc/withClass';
+import Aux from '../hoc/Auxilary';
+import Cockpit from '../components/Cockpit/Cockpit';
 //import Radium from 'radium';
+import Persons from '../components/Persons/Persons';
+
+//outside class EXPORT it to everyone
+export const AuthContext = React.createContext(false);
+
 
 class App extends Component {
 
-  state = {
-    persons: [
-      {id: 0, name: 'Arska', age: '51' },
-      {id: 1, name: 'Jack', age: '40'},
-      {id: 2, name: 'Jennifer', age: '27' }
-    
-    ],
-    randomPersons: [
-      {name: 'Random', age: '33'}
-    ],
-    users: [
-      {id: 0, name: 'user'}
-    ],
-    visiblePersons: true, 
-    enteredText: ''
-    }
+  constructor (props){
+    super(props);
+    this.state = {
+      persons: [
+        {id: 0, name: 'Arska', age: '51' },
+        {id: 1, name: 'Jack', age: '40'},
+        {id: 2, name: 'Jennifer', age: '27' }
+      
+      ],
+      randomPersons: [
+        {name: 'Random', age: '33'}
+      ],
+      users: [
+        {id: 0, name: 'user'}
+      ],
+      visiblePersons: true, 
+      enteredText: '',
+      toggleClickedTimes: 0,
+      usrAuthenticated: false
+
+      }
+      
+  }
+
+  componentDidMount(){
+
+  }
+
+ componentWillUpdate(nextProps, nextState){
+    console.log(" app.js WILLUPDATE");
+  }
+
+
+ static getDerivedStateFromProps(nextProps, prevState){
+  console.log(" GETDERIVEDSTATEFROMPROPS() ");
+
+  return prevState;
+
+ }
+ 
+ //snap the dom
+ getSnapshotBeforeUpdate(){
+  console.log("app.js SNAP!!!!");
+  
+ }
+
+ shouldComponentUpdate(nextProps, nextState){
+    console.log(" app.js shouldComponentUpdate " + nextProps + " - " + nextState)
+    return true;
+  }
+
+  componentDidUpdate(){
+    console.log("app.js did update");
+  }
 
   /* event handleri..*/
   switchNameHandler = () => {
@@ -43,7 +89,14 @@ class App extends Component {
 
   togglePersonsHandler = () => {
      const v = this.state.visiblePersons;
-     this.setState({visiblePersons: !v});
+     this.setState((previousState, props) => 
+     {
+       return {
+        visiblePersons: !v,
+        toggleClickedTimes: previousState.toggleClickedTimes +1
+       }
+       
+      });
   }
 
   changeToName = (newName) => {
@@ -124,8 +177,13 @@ class App extends Component {
 
   }
 
+  loginHandler = () => {
+    this.setState({usrAuthenticated: true})
+  }
+
+
   render() {
-    const styleObject = {
+   /* const styleObject = {
       backgroundColor: 'green',
       color: 'white',
       font: 'inherit',
@@ -133,16 +191,14 @@ class App extends Component {
       padding: '8px',
       cursor: 'pointer' //,
 
-      
       //Radiumin kanssa
       //':hover': {
       //  backgroundColor: 'lightGreen',
       //  color: 'red'
      // }
 
-
     }
-
+*/
 
     let p1 = this.state.persons[0];
     let p2 = this.state.persons[1];
@@ -152,8 +208,11 @@ class App extends Component {
     let str = this.state.enteredText;
     let array = str.split('');
 
+    let btnClass = '';
+
     let charListDiv = (
       <div>
+       
         {
           array.map( 
               (character, index) => {
@@ -170,75 +229,51 @@ class App extends Component {
       </div>
     );
 
+    btnClass = classnames.Red;
+
     if (this.state.visiblePersons){
+      //tätä propsia ei tarvita koska käytetään contextapia
+      // isAuthenticated = {this.state.usrAuthenticated}
       personsdiv = (
-        <div>
-         { this.state.persons.map( (item, index) => {
-           return <Person 
-              click={this.deletePersonHandler.bind(this, index)}
-              name={item.name} 
-              age={item.age} 
-              key={item.id}
-              changed={ (event) => {
-                this.nameChangedHandler(event, item.id)
-              }}
-            />
-         })}
-      
-      </div>
+        
+        <Persons
+          persons={this.state.persons}
+          clicked={this.deletePersonHandler}
+          changed={this.nameChangedHandler}
+         
+        />
+
       );
 
-      styleObject.backgroundColor='red';
-      styleObject[':hover'] = {
+     // styleObject.backgroundColor='red';
+     /* styleObject[':hover'] = {
         backgroundColor: 'lightRed',
         color: 'yellow'
-      };
+      };*/
     }
-     
-    let classnames = [];
-    if(this.state.persons.length <= 2){
-      classnames.push('red');
-    }
-    if(this.state.persons.length <=1){
-      classnames.push('bold');
-    }
+ 
       // Radiumin kanssa voisi käyttää className={classnames.join(' ') }
+    // <withClass classNames={classnames.App}>
     return (
-       <div className="App">
-      
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <div className="App-intro">
-        <div className={)}> Input sandbox!!! </div>
-          <UserInput changed={this.charListChangedHandler} currentName={this.state.enteredText} />
-          <p>{this.state.enteredText}</p>
-          <Validation text={this.state.enteredText} />
-          {charListDiv}
-          <UserInput changed={this.inputUserHandler} currentName={this.state.users[0].name}/>
-          <UserOutput username={this.state.users[0].name}/>
-
-          <button onClick={
-            this.switchNameHandler
-          }>Switch name</button>
-          Up next is: <br />
-         <Person name={this.state.randomPersons[0].name} age={this.state.randomPersons[0].age} />
-         <br />
-
-        <button style={styleObject} onClick={
-          this.togglePersonsHandler
-        }>toggle</button>
-
-        { 
-         /* this.state.showPersons === true ?*/
-            /* : null*/
-            personsdiv
-        }
-        
-       
-        </div>
-      </div>
+      <Aux>
+        <button onClick={() => {this.setState({visiblePersons: true})}}>Show Persons</button>
+        <Cockpit 
+              personClicked={this.deletePersonHandler}
+              togglePersonsHandler = {this.togglePersonsHandler}
+              persons={this.state.persons}
+              defaultName={this.state.users[0].name}
+              charListChanged = {this.charListChangedHandler}
+              enteredText = {this.state.enteredText}
+              inputUserChange = {this.inputUserHandler} 
+              charListDiv = {charListDiv}
+              login={this.loginHandler}
+            
+        />
+        <AuthContext.Provider value={this.state.usrAuthenticated}>
+          {personsdiv}
+        </AuthContext.Provider>
+      </Aux>
+         
     );
 
    
@@ -246,5 +281,5 @@ class App extends Component {
   }
 }
 
-export default App;
+export default withClass(App, classnames.App);
 //export default Radium(App);
